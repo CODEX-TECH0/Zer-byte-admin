@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="manifest" href="/admin/manifest.json">
+  <meta name="theme-color" content="#3B82F6">
+  <title>zerøbyte | Broadcast Center</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #F0F9FF;
+      color: #1E293B;
+      padding-bottom: 75px;
+    }
+    .header {
+      background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+      padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid rgba(59,130,246,0.1); position: sticky; top: 0; z-index: 100;
+    }
+    .logo { font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #3B82F6, #06B6D4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .back-link { color: #3B82F6; text-decoration: none; padding: 8px 20px; border: 1px solid #3B82F6; border-radius: 40px; }
+    .card { background: white; border-radius: 28px; margin: 24px; padding: 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .card-title { font-size: 22px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    .card-title i { color: #3B82F6; }
+    .form-group { margin-bottom: 24px; }
+    label { display: block; margin-bottom: 8px; color: #1E293B; font-weight: 500; }
+    label i { margin-right: 8px; color: #3B82F6; }
+    input, select, textarea { width: 100%; padding: 14px 18px; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 20px; color: #1E293B; font-size: 15px; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #3B82F6; }
+    textarea { resize: vertical; min-height: 120px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .btn-primary { padding: 14px 32px; background: linear-gradient(135deg, #3B82F6, #06B6D4); border: none; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59,130,246,0.3); }
+    .btn-danger { background: rgba(239,68,68,0.1); border: none; padding: 8px 16px; border-radius: 30px; color: #EF4444; cursor: pointer; }
+    .message { padding: 14px 20px; border-radius: 20px; margin: 0 24px 20px 24px; text-align: center; }
+    .success { background: #DCFCE7; border: 1px solid #22C55E; color: #16A34A; }
+    .error { background: #FEE2E2; border: 1px solid #EF4444; color: #DC2626; }
+    .table-wrapper { overflow-x: auto; margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 14px 12px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+    th { color: #3B82F6; }
+    .badge { padding: 4px 12px; border-radius: 30px; font-size: 11px; display: inline-block; }
+    .badge-high { background: rgba(239,68,68,0.15); color: #EF4444; }
+    .badge-urgent { background: rgba(245,158,11,0.15); color: #F59E0B; }
+    .badge-normal { background: rgba(59,130,246,0.15); color: #3B82F6; }
+    .badge-active { background: rgba(34,197,94,0.15); color: #22C55E; }
+    .badge-expired { background: rgba(148,163,184,0.15); color: #64748B; }
+    .empty-state { text-align: center; padding: 60px; color: #94A3B8; }
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.98); backdrop-filter: blur(20px);
+      display: flex; justify-content: space-around; padding: 12px 20px;
+      border-top: 1px solid rgba(59,130,246,0.1); z-index: 100;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: #94A3B8; cursor: pointer; font-size: 11px;
+      padding: 6px 16px; border-radius: 30px;
+    }
+    .nav-item i { font-size: 22px; }
+    .nav-item:hover, .nav-item.active { color: #3B82F6; background: rgba(59,130,246,0.1); }
+    @media (max-width: 768px) {
+      .card { margin: 16px; padding: 20px; }
+      .form-row { grid-template-columns: 1fr; gap: 16px; }
+      .btn-primary { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">Broadcast Center</div>
+    <a href="dashboard.html" class="back-link"><i class="fas fa-arrow-left"></i> Dashboard</a>
+  </div>
+  <div id="messageContainer"></div>
+  <div class="card">
+    <h2 class="card-title"><i class="fas fa-broadcast-tower"></i> Send Broadcast</h2>
+    <form id="broadcastForm">
+      <div class="form-group"><label><i class="fas fa-heading"></i> Title</label><input type="text" id="title" placeholder="e.g., 🎉 New Feature Available!" required></div>
+      <div class="form-group"><label><i class="fas fa-envelope-open-text"></i> Message</label><textarea id="messageContent" placeholder="Write your announcement..." required></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label><i class="fas fa-flag"></i> Priority</label><select id="priority"><option value="normal">📘 Normal</option><option value="high">📙 High</option><option value="urgent">📕 Urgent</option></select></div>
+        <div class="form-group"><label><i class="fas fa-users"></i> Audience</label><select id="targetAudience"><option value="all">🌍 All Users</option><option value="active_users">⚡ Active (Last 7 days)</option><option value="new_users">🆕 New (Last 30 days)</option></select></div>
+      </div>
+      <div class="form-group"><label><i class="fas fa-calendar-times"></i> Expires (Optional)</label><input type="datetime-local" id="expiresAt"></div>
+      <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Send Notification</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2 class="card-title"><i class="fas fa-history"></i> Sent Notifications</h2>
+    <div class="table-wrapper"><table><thead><tr><th>Title</th><th>Message</th><th>Priority</th><th>Audience</th><th>Sent Date</th><th>Recipients</th><th>Status</th><th>Actions</th></tr></thead><tbody id="notificationsList"></tbody></table></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="window.location.href='dashboard.html'"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></div>
+    <div class="nav-item active"><i class="fas fa-broadcast-tower"></i><span>Broadcast</span></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUser = null;
+    
+    function showMessage(text, type) { const c = document.getElementById('messageContainer'); c.innerHTML = `<div class="message ${type}">${text}</div>`; setTimeout(() => c.innerHTML = '', 5000); }
+    
+    async function checkAdmin() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) { window.location.href = 'index.html'; return null; }
+      const { data: profile } = await _supabase.from('profiles').select('is_admin').eq('id', session.user.id).single();
+      if (!profile?.is_admin) { await _supabase.auth.signOut(); window.location.href = 'index.html'; return null; }
+      currentUser = session.user;
+      return currentUser;
+    }
+    
+    async function getTargetUsers(audience) { let q = _supabase.from('profiles').select('id'); if (audience === 'active_users') { const d = new Date(); d.setDate(d.getDate() - 7); q = q.gte('last_seen', d.toISOString()); } else if (audience === 'new_users') { const d = new Date(); d.setDate(d.getDate() - 30); q = q.gte('created_at', d.toISOString()); } const { data } = await q; return data || []; }
+    
+    async function sendToUsers(users, nid) { const notifs = users.map(u => ({ user_id: u.id, notification_id: nid, is_read: false })); for (let i = 0; i < notifs.length; i += 100) { await _supabase.from('user_notifications').insert(notifs.slice(i, i + 100)); } return notifs.length; }
+    
+    document.getElementById('broadcastForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value, message = document.getElementById('messageContent').value, priority = document.getElementById('priority').value, target = document.getElementById('targetAudience').value, expires = document.getElementById('expiresAt').value;
+      if (!title || !message) { showMessage('Fill all fields', 'error'); return; }
+      const btn = document.querySelector('#broadcastForm .btn-primary'); const original = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+      try {
+        const { data: notif, error } = await _supabase.from('notifications').insert([{ title, message, type: 'broadcast', priority, target_audience: target, created_by: currentUser.id, expires_at: expires || null }]).select().single();
+        if (error) throw error;
+        const users = await getTargetUsers(target);
+        if (users.length === 0) { showMessage('No users found', 'error'); return; }
+        const sent = await sendToUsers(users, notif.id);
+        showMessage(`✅ Sent to ${sent} users!`, 'success');
+        document.getElementById('title').value = ''; document.getElementById('messageContent').value = ''; document.getElementById('expiresAt').value = '';
+        await loadSentNotifications();
+      } catch (error) { showMessage('Error: ' + error.message, 'error'); } finally { btn.disabled = false; btn.innerHTML = original; }
+    });
+    
+    async function loadSentNotifications() {
+      const { data: notifs } = await _supabase.from('notifications').select('*').eq('created_by', currentUser.id).order('created_at', { ascending: false });
+      const tbody = document.getElementById('notificationsList'); tbody.innerHTML = '';
+      if (!notifs || notifs.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No notifications sent yet</div><tr>'; return; }
+      for (const n of notifs) {
+        const { count } = await _supabase.from('user_notifications').select('*', { count: 'exact', head: true }).eq('notification_id', n.id);
+        const expired = n.expires_at && new Date(n.expires_at) < new Date();
+        let priorityClass = 'badge-normal', priorityText = '🔵 Normal';
+        if (n.priority === 'urgent') { priorityClass = 'badge-urgent'; priorityText = '🔴 Urgent'; }
+        else if (n.priority === 'high') { priorityClass = 'badge-high'; priorityText = '🟠 High'; }
+        let audienceText = n.target_audience === 'all' ? '🌍 All' : (n.target_audience === 'active_users' ? '⚡ Active' : '🆕 New');
+        const row = tbody.insertRow();
+        row.innerHTML = `<td><strong>${escapeHtml(n.title)}</strong></td><td style="max-width:250px">${escapeHtml(n.message.substring(0, 60))}${n.message.length > 60 ? '...' : ''}</div><td><span class="badge ${priorityClass}">${priorityText}</span></div><td><span class="badge">${audienceText}</span></div><td>${new Date(n.created_at).toLocaleString()}</div><td><strong>${count || 0}</strong> users</div><td><span class="badge ${expired ? 'badge-expired' : 'badge-active'}">${expired ? 'Expired' : 'Active'}</span></div><td><button class="btn-danger" onclick="deleteNotification('${n.id}')"><i class="fas fa-trash"></i> Delete</button></div>`;
+      }
+    }
+    
+    window.deleteNotification = async (id) => { if (confirm('Delete this notification?')) { await _supabase.from('user_notifications').delete().eq('notification_id', id); await _supabase.from('notifications').delete().eq('id', id); await loadSentNotifications(); showMessage('Deleted', 'success'); } };
+    
+    function escapeHtml(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+    
+    async function init() { await checkAdmin(); if (currentUser) await loadSentNotifications(); }
+    init();
+  </script>
+</body>
+</html>
